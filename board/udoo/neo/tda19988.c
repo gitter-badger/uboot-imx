@@ -23,7 +23,7 @@
 #include <asm/imx-common/mxc_i2c.h>
 
 #include <linux/fb.h>
-#include <mxsfb.h>
+//#include <mxsfb.h>
 
 
 #define REG(page, addr) (((page) << 8) | (addr))
