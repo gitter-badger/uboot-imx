@@ -22,9 +22,38 @@
 #define CONFIG_SYS_MALLOC_LEN		(3 * SZ_1M)
 
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
+
+#undef CONFIG_LOADADDR
+#define CONFIG_LOADADDR			0x80800000
+#define CONFIG_SYS_TEXT_BASE		0x87800000
+
+#define CONFIG_SYS_AUXCORE_BOOTDATA 0x78000000 /* Set to QSPI2 B flash at default */
+#ifndef CONFIG_SYS_AUXCORE_FASTUP
+#define CONFIG_CMD_BOOTAUX /* Boot M4 by command, disable this when M4 fast up */
+#endif
+
+#ifdef CONFIG_CMD_BOOTAUX
+#define UPDATE_M4_ENV \
+	"m4image=m4_qspi.bin\0" \
+	"loadm4image=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4image}\0" \
+	"update_m4_from_sd=" \
+		"if sf probe 1:0; then " \
+			"if run loadm4image; then " \
+				"setexpr fw_sz ${filesize} + 0xffff; " \
+				"setexpr fw_sz ${fw_sz} / 0x10000; "	\
+				"setexpr fw_sz ${fw_sz} * 0x10000; "	\
+				"sf erase 0x0 ${fw_sz}; " \
+				"sf write ${loadaddr} 0x0 ${filesize}; " \
+			"fi; " \
+		"fi\0" \
+	"m4boot=sf probe 1:0; bootaux "__stringify(CONFIG_SYS_AUXCORE_BOOTDATA)"\0"
+#else
+#define UPDATE_M4_ENV ""
+#endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=uEnv.txt\0" \
@@ -33,7 +62,7 @@
 	"fdt_high=0xffffffff\0" \
 	"initrd_high=0xffffffff\0" \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
-	"fdt_addr=0x88000000\0" \
+	"fdt_addr=0x83000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
 	"mmcdev=0\0" \
@@ -135,14 +164,8 @@
 /* PMIC */
 #define CONFIG_POWER
 #define CONFIG_POWER_I2C
-#define CONFIG_POWER_PFUZE100
-#define CONFIG_POWER_PFUZE100_I2C_ADDR	0x08
-#define CONFIG_PFUZE300_PMIC_I2C
-#ifdef CONFIG_PFUZE300_PMIC_I2C
-#define CONFIG_PMIC_I2C_BUS            0
-#define CONFIG_PMIC_I2C_SLAVE          0x8
-#endif
-
+#define CONFIG_POWER_PFUZE3000
+#define CONFIG_POWER_PFUZE3000_I2C_ADDR	0x08
 
 /* Network */
 #define CONFIG_CMD_PING
@@ -174,33 +197,9 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT 2
 #endif
 
-#define CONFIG_CMD_PCI
-#ifdef CONFIG_CMD_PCI
-#define CONFIG_PCI
-#define CONFIG_PCI_PNP
-#define CONFIG_PCI_SCAN_SHOW
-#define CONFIG_PCIE_IMX
-#define CONFIG_PCIE_IMX_PERST_GPIO	IMX_GPIO_NR(2, 0)
-#define CONFIG_PCIE_IMX_POWER_GPIO	IMX_GPIO_NR(2, 1)
-#endif
-
 #define CONFIG_IMX_THERMAL
 
 #define CONFIG_CMD_TIME
-
-#ifdef CONFIG_FSL_QSPI
-#define CONFIG_CMD_SF
-#define CONFIG_SPI_FLASH_SPANSION
-#define CONFIG_SPI_FLASH_STMICROMAX
-#define CONFIG_SYS_FSL_QSPI_LE
-#define CONFIG_SYS_FSL_QSPI_AHB
-#ifdef CONFIG_MX6SX_SABRESD_REVA
-#define FSL_QSPI_FLASH_SIZE		SZ_16M
-#else
-#define FSL_QSPI_FLASH_SIZE		SZ_32M
-#endif
-#define FSL_QSPI_FLASH_NUM		2
-#endif
 
 #define CONFIG_ENV_OFFSET		(8 * SZ_64K)
 #define CONFIG_ENV_SIZE			SZ_8K
@@ -212,15 +211,6 @@
 #endif
 
 #undef CONFIG_VIDEO
-#ifdef CONFIG_VIDEO
-#error "CONFIG_VIDEO"
-#endif
-
-#ifdef CONFIG_CFB_CONSOLE
-#error "CONFIG_CFB_CONSOLE"
-#endif
-
-
 
 
 
