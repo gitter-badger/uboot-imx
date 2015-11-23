@@ -197,6 +197,7 @@ static void setup_wl1831(void)
 	gpio_direction_output(IMX_GPIO_NR(2,17), 0); // WL1831 - Bt enable
 }
 
+#ifdef CONFIG_FEC_MXC
 static int setup_fec(void)
 {
 	struct iomuxc *iomuxc_regs = (struct iomuxc *)IOMUXC_BASE_ADDR;
@@ -231,6 +232,7 @@ int board_eth_init(bd_t *bis)
 
 	return cpu_eth_init(bis);
 }
+#endif
 
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
 /* I2C1 for PMIC */
@@ -677,7 +679,7 @@ int power_init_board(void)
 
 	pmic_reg_read(p, PFUZE3000_DEVICEID, &reg);
 	pmic_reg_read(p, PFUZE3000_REVID, &rev_id);
-	printf("PMIC: PFUZE3000 DEV_ID=0x%x REV_ID=0x%x\n", reg, rev_id);
+	printf("PMIC:  PFUZE3000 DEV_ID=0x%x REV_ID=0x%x\n", reg, rev_id);
 
 	/* disable Low Power Mode during standby mode */
 	pmic_reg_read(p, PFUZE3000_LDOGCTL, &reg);
@@ -778,7 +780,7 @@ int power_init_board(void)
 		return -1;
 	}
 
-	puts("PMIC: init complete!\n");
+	puts("PMIC:  init complete!\n");
 
 	return 0;
 }
